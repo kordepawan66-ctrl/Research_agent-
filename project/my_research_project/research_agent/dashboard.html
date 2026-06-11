@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>IBM Granite AI Research Agent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid"><span class="navbar-brand">🔬 Granite R&D Agent Workspace</span></div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="card p-4 shadow-sm mb-4">
+                    <h5>📁 Ingest Academic Literature</h5>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <input class="form-control" type="file" id="pdfFile" accept=".pdf">
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="processPaper()">Analyze Paper</button>
+                    </form>
+                </div>
+
+                <div class="card p-4 shadow-sm">
+                    <h5>💡 Novel Hypothesis Generation</h5>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="topicInput" placeholder="e.g., Perovskite Solar Cell Degradation">
+                    </div>
+                    <button type="button" class="btn btn-success w-100" onclick="generateHypothesis()">Suggest Hypotheses</button>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card p-4 shadow-sm" style="min-height: 400px;">
+                    <h5>📊 Agent Outputs & Insights</h5>
+                    <hr>
+                    <div id="loadingSpinner" class="text-center d-none my-5">
+                        <div class="spinner-border text-secondary" role="status"></div>
+                        <p class="mt-2 text-muted">Granite Agent thinking...</p>
+                    </div>
+                    <div id="agentResponse" style="white-space: pre-wrap;" class="text-secondary">
+                        Upload a paper or type a research topic to activate the Agent...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleLoading(show) {
+            document.getElementById('loadingSpinner').classList.toggle('d-none', !show);
+            if(show) document.getElementById('agentResponse').innerText = '';
+        }
+
+        async function processPaper() {
+            let fileInput = document.getElementById('pdfFile').files[0];
+            if(!fileInput) return alert("Please select a file!");
+            
+            let formData = new FormData();
+            formData.append('pdf_file', fileInput);
+            
+            toggleLoading(true);
+            let response = await fetch('/summarize/', { method: 'POST', body: formData });
+            let data = await response.json();
+            toggleLoading(false);
+            
+            document.getElementById('agentResponse').innerText = data.summary || data.error;
+        }
+
+        async function generateHypothesis() {
+            let topic = document.getElementById('topicInput').value;
+            if(!topic) return alert("Enter a topic!");
+            
+            let formData = new FormData();
+            formData.append('topic', topic);
+            
+            toggleLoading(true);
+            let response = await fetch('/hypothesize/', { method: 'POST', body: formData });
+            let data = await response.json();
+            toggleLoading(false);
+            
+            document.getElementById('agentResponse').innerText = data.hypotheses;
+        }
+    </script>
+</body>
+</html>
